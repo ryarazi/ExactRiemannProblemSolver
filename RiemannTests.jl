@@ -4,7 +4,7 @@ include("RiemannSolver.jl")
 N = 1000
 xmin = -0.5
 xmax = 0.5
-x = convert(Array{Float64,1}, LinRange(xmin, xmax, N))
+x = collect(LinRange(xmin, xmax, N))
 save_figs = true #if this is false the figures will use show(), otherwise they will be saved locally in 'figs' dir
 
 #create directory for figures
