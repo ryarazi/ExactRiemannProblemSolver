@@ -44,10 +44,10 @@ struct LeftSide <: Side end
 struct RightSide <: Side end
 
 #in some equations there is factor difference between the left and right side calculations
-side_factor(::Type{LeftSide}) = -1
-side_factor(::Type{RightSide}) = 1
+side_factor(::LeftSide) = -1
+side_factor(::RightSide) = 1
 
 #choose the some variable based on the side given
-choose_side(left, right, ::Type{LeftSide}) = left
-choose_side(left, right, ::Type{RightSide}) = right
+choose_side(left, right, ::LeftSide) = left
+choose_side(left, right, ::RightSide) = right
 

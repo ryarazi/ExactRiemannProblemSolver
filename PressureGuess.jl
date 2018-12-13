@@ -1,7 +1,7 @@
 include("TypeDefine.jl")
 
 #see (4.46) from Toro
-function p_guess(left::HydroStatus, right::HydroStatus, ::Type{TwoRarefaction})
+function p_guess(left::HydroStatus, right::HydroStatus, ::TwoRarefaction)
 		@assert left.gamma == right.gamma
 		gamma = left.gamma
 		gamma_power = (gamma-1) / 2. / gamma
@@ -12,7 +12,7 @@ function p_guess(left::HydroStatus, right::HydroStatus, ::Type{TwoRarefaction})
 end
 
 #see (4.47) from Toro
-function p_guess(left::HydroStatus, right::HydroStatus, ::Type{PrimitiveValue})
+function p_guess(left::HydroStatus, right::HydroStatus, ::PrimitiveValue)
 	delta_u = right.u - left.u
 	mean_pressure = 0.5 * (left.p + right.p)
 	mean_density = 0.5 * (left.rho + right.rho)
@@ -22,7 +22,7 @@ end
 
 #see (4.48) from Toro
 g(p, status::HydroStatus) = sqrt(status.A / (p + status.B))	
-function p_guess(left::HydroStatus, right::HydroStatus, ::Type{TwoShock})
+function p_guess(left::HydroStatus, right::HydroStatus, ::TwoShock)
 	p_hat = p_guess(left, right, PrimitiveValue)
 	g_left = g(p_hat, left)
 	g_right = g(p_hat, right)
@@ -31,4 +31,4 @@ function p_guess(left::HydroStatus, right::HydroStatus, ::Type{TwoShock})
 end				  
 
 #see (4.49) from Toro
-p_guess(left::HydroStatus, right::HydroStatus, ::Type{MeanPressure}) = 0.5*(left.p + right.p)
+p_guess(left::HydroStatus, right::HydroStatus, ::MeanPressure) = 0.5*(left.p + right.p)

@@ -145,7 +145,7 @@ calculate_and_plot(stationary)
 #
 #using Profile
 #N = 1000000
-#x = convert(Array{Float64,1}, LinRange(xmin, xmax, N))
+#x = collect(LinRange(xmin, xmax, N))
 #chosen_test = rcvcr
 #sample_riemann(x, test.t, test.left, test.right)
 #Profile.clear()
