@@ -20,7 +20,9 @@ struct TestCase
 end
 
 function calculate_and_plot(test::TestCase)
-	println("Time for the test:")
+	name = test.name
+	
+	println("Time for the test $name:")
 	
 	#dummy run to compile all code
 	sample_riemann(x, test.t, test.left, test.right)
@@ -32,6 +34,7 @@ function calculate_and_plot(test::TestCase)
 	energy = pressure ./ density ./ (test.left.gamma - 1.)
 	
 	figure()
+	suptitle(name)
 	subplot(221)
 	plot(x, density)
 	title("density")
@@ -57,7 +60,7 @@ function calculate_and_plot(test::TestCase)
 	if !save_figs
 		show()
 	else
-		name = test.name
+		
 		savefig("figs/$name.pdf",format="pdf",dpi=200)
 		savefig("figs/$name.png",format="png",dpi=200)
 	end
