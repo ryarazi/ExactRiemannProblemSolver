@@ -1,0 +1,17 @@
+name = "ExactRiemannProblemSolver"
+uuid = "779adfcb-3cb3-45de-bb83-2ce5031b8535"
+authors = ["Roy Arazi"]
+version = "0.1.0"
+
+[deps]
+Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
+
+[compat]
+Roots = "2, 3"
+julia = "1.6"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

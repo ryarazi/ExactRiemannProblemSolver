@@ -4,15 +4,16 @@ struct HydroStatus
 	u::Float64 #velocity
 	p::Float64 #pressure
 	gamma::Float64 #adiabatic index
+	p_inf::Float64 # stiffened gas, p = (gamma - 1) rho e - gamma p_inf; 0 for an ideal gas
 	c::Float64 #speed of cound
 	A::Float64 #Toro constant (4.8)
 	B::Float64 #Toro constant (4.8)
 	
-	function HydroStatus(rho, u, p, gamma)
-		c = sqrt(gamma * p / rho)
+	function HydroStatus(rho, u, p, gamma, p_inf = 0.) # stiffened gas: p_inf
+		c = sqrt(gamma * (p + p_inf) / rho) # stiffened gas: p + p_inf for p
 		A = 2. / (gamma + 1.) / rho
-		B = (gamma - 1.) / (gamma + 1.) * p
-		new(rho, u, p, gamma, c, A, B)
+		B = (gamma - 1.) / (gamma + 1.) * (p + p_inf) # stiffened gas: p + p_inf for p
+		new(rho, u, p, gamma, p_inf, c, A, B) # stiffened gas: p_inf
 	end
 end
 

@@ -1,10 +1,6 @@
-using Roots
-include("TypeDefine.jl")
-include("PressureGuess.jl")
-
 #function (4.6) and (4.7) from Toro
-f(p, status::HydroStatus, ::Shock) = (p - status.p) * sqrt(status.A / (p + status.B))
-f(p, status::HydroStatus, ::Rarefaction) = 2. * status.c / (status.gamma - 1.) * ((p / status.p)^((status.gamma - 1.) / 2. /status.gamma) - 1.)
+f(p, status::HydroStatus, ::Shock) = (p - status.p) * sqrt(status.A / (p + status.p_inf + status.B)) # stiffened gas: p + p_inf for p
+f(p, status::HydroStatus, ::Rarefaction) = 2. * status.c / (status.gamma - 1.) * (((p + status.p_inf) / (status.p + status.p_inf))^((status.gamma - 1.) / 2. /status.gamma) - 1.) # stiffened gas: p + p_inf for p
 function f(p, status::HydroStatus)
 	wave_type = p > status.p ? Shock() : Rarefaction()
 	return f(p, status, wave_type)
@@ -28,15 +24,15 @@ u_star_calc(p_star, left::HydroStatus, right::HydroStatus) = 0.5 * (left.u + rig
 
 
 #equations (4.23) and (4.32) from Toro
-rho_star_calc(p_star, status::HydroStatus, ::Rarefaction) = status.rho * (p_star / status.p) ^ (1. / status.gamma)
+rho_star_calc(p_star, status::HydroStatus, ::Rarefaction) = status.rho * ((p_star + status.p_inf) / (status.p + status.p_inf)) ^ (1. / status.gamma) # stiffened gas: p + p_inf for p
 
 #equation (4.25) and (4.34) from Toro
-c_star_calc(p_star, status::HydroStatus, ::Rarefaction) = status.c * (p_star / status.p) ^ ((status.gamma - 1.) / 2. / status.gamma)
+c_star_calc(p_star, status::HydroStatus, ::Rarefaction) = status.c * ((p_star + status.p_inf) / (status.p + status.p_inf)) ^ ((status.gamma - 1.) / 2. / status.gamma) # stiffened gas: p + p_inf for p
 
 #equations (4.50) and (4.57) from Toro
 function rho_star_calc(p_star, status::HydroStatus, ::Shock)
 	gamma_ratio = (status.gamma - 1.) / (status.gamma + 1.)
-	pressure_ratio = p_star / status.p
+	pressure_ratio = (p_star + status.p_inf) / (status.p + status.p_inf) # stiffened gas: p + p_inf for p
 	return status.rho * (pressure_ratio + gamma_ratio) / (pressure_ratio * gamma_ratio + 1.)
 end
 
@@ -55,7 +51,7 @@ function head_speed_calc(p_star, u_star, status::HydroStatus, side::T, ::Shock) 
 	gamma = status.gamma
 	gamma_ratio1 = (gamma + 1.) / 2. / gamma
 	gamma_ratio2 = (gamma - 1.) / 2. / gamma
-	return status.u + side_factor(side) * status.c * sqrt(gamma_ratio1 * p_star / status.p + gamma_ratio2)
+	return status.u + side_factor(side) * status.c * sqrt(gamma_ratio1 * (p_star + status.p_inf) / (status.p + status.p_inf) + gamma_ratio2) # stiffened gas: p + p_inf for p
 end
 
 #for shock the head and the tail are the same
@@ -83,7 +79,7 @@ function rarefaction_profile(x_over_t, status::HydroStatus, side::T) where {T<:S
 	
 	rho = status.rho * rarefaction_factor
 	u = gamma_plus * (-side_factor(side)*status.c + (1. /gamma_minus) * status.u + x_over_t)
-	p = status.p * rarefaction_factor ^ gamma
+	p = (status.p + status.p_inf) * rarefaction_factor ^ gamma - status.p_inf # stiffened gas: p + p_inf for p
 	
 	return HydroStatusSimple(rho, u, p)
 end
@@ -102,7 +98,9 @@ function sample_riemann_regular(x, t::Float64, left::HydroStatus, right::HydroSt
 	
 	x_over_t = x ./ t
 	
-	if 2. / (left.gamma - 1.) * (left.c + right.c) <= right.u - left.u #vaccum generation
+	# stiffened gas: no positive p_star, with each side's own gamma and p_inf; for one gamma
+	# and p_inf = 0 this is 2. / (gamma - 1.) * (left.c + right.c) <= right.u - left.u
+	if f(0., left) + f(0., right) + right.u - left.u >= 0. #vaccum generation
 		#if vaccum is generated - the density in the middle will be zero
 		p_star = 0. 
 		u_star = 0.
@@ -195,7 +193,7 @@ end
 function sample_riemann(x, t::Float64, left::HydroStatus =  HydroStatus(1.,    0., 1.,  7. / 5.),
 									   right::HydroStatus = HydroStatus(0.125, 0., 0.1, 7. / 5.),
 									   guess_scheme::T = PrimitiveValue(), TOL::Float64 = 1.e-6) where {T<:FirstGuessScheme}
-	@assert left.gamma == right.gamma
+	# @assert left.gamma == right.gamma # stiffened gas: each side has its own gamma
 	
 	if left.rho == 0 #material is on the right, vaccum on the left
 		return sample_riemann_side_vaccum(x, t, right, RightSide())

@@ -1,5 +1,5 @@
 using PyPlot
-include("RiemannSolver.jl")
+using ExactRiemannProblemSolver
 
 N = 1000
 xmin = -0.5

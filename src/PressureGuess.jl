@@ -1,5 +1,3 @@
-include("TypeDefine.jl")
-
 #see (4.46) from Toro
 function p_guess(left::HydroStatus, right::HydroStatus, ::TwoRarefaction)
 		@assert left.gamma == right.gamma
